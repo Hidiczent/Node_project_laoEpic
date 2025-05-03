@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Booking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #084886;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 20px;
+            color: #333333;
+        }
+
+        .content h2 {
+            font-size: 22px;
+            color: #F58A07;
+            margin-bottom: 15px;
+        }
+
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .content .info {
+            margin-bottom: 15px;
+        }
+
+        .content .info span {
+            font-weight: bold;
+            color: #333333;
+        }
+
+        .footer {
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 10px;
+            color: #999999;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #28a745;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            New Booking Form Submission
+        </div>
+        <div class="content">
+            <h2>Booking Details</h2>
+            <div class="info">
+                <p><span>Package Name:</span> {{package_name}}</p>
+                <p><span>First Name:</span> {{first_name}}</p>
+                <p><span>Last Name:</span> {{last_name}}</p>
+                <p><span>Email:</span> {{email}}</p>
+                <p><span>Birth:</span> {{birth}}</p>
+                <p><span>Nationality:</span> {{nationality}}</p>
+                <p><span>Date for Booking:</span> {{date_for_booking}}</p>
+                <p><span>Number of Participants:</span> {{number_of_participants}}</p>
+                <p><span>Passport Number:</span> {{passport_number}}</p>
+                <p><span>Note:</span> {{note}}</p>
+
+            </div>
+        </div>
+        <div class="footer">
+            <p>Thank you for using our service. If you have any questions, feel free to <a
+                    href="mailto:jimmysenngdavong@gmail.com">contact us</a>.</p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - '@playwright/browser-chromium'
+  - aws-sdk
+  - bcrypt
+  - protobufjs
+  - unix-dgram

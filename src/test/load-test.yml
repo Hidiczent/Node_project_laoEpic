@@ -1,0 +1,21 @@
+# test/load-test.yml
+config:
+  target: 'http://localhost:5000' # URL ของ API ของคุณ
+  phases:
+    - duration: 60  # ระยะเวลาการทดสอบ (วินาที)
+      arrivalRate: 50  # จำนวนคำขอพร้อมกันต่อวินาที
+scenarios:
+  - flow:
+      - post:
+          url: '/package/package/3'  # แก้ไข URL ให้ตรงกับ endpoint ที่คุณต้องการทดสอบ
+          json:
+            first_name: "somsanith"
+            last_name: "phengmaneekham"
+            email: "jimmy@example.com"
+            birth: "2005-03-24"
+            nationality_id: 2
+            date_for_booking: "2024-12-01"
+            number_of_participants: 4
+            passport_number: "A123456"
+            note: "Test booking"
+            package_id: 12

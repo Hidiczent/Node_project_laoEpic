@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Booking Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: #084886;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            color: #f58a07;
+        }
+
+        .content {
+            padding: 20px;
+            color: #333333;
+        }
+
+        .content p {
+            margin: 10px 0;
+        }
+
+        .content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .content ul li {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f4f4f4;
+            border-radius: 5px;
+        }
+
+        .footer {
+            background: #084886;
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: #f58a07;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Booking Confirmation</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <p>Dear <strong>{{first_name}} {{last_name}}</strong>,</p>
+            <p>Thank you for booking your trip with <strong>LaoEpic</strong>!</p>
+            <p>Here are your booking details:</p>
+            <ul>
+                <li><strong>Package Name:</strong> {{package_name}}</li>
+                <li><strong>Date for Booking:</strong> {{date_for_booking}}</li>
+                <li>
+                    <strong>Number of Participants:</strong> {{number_of_participants}}
+                    person
+                </li>
+                <li><strong>Note:</strong> {{note}}</li>
+            </ul>
+            <p>We look forward to seeing you on your journey!</p>
+            <p>
+                If you have any questions, feel free to contact us at
+                <a href="mailto:khodthayoperation@gmail.com">khodthayoperation@gmail.com</a>.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <!-- <p>© {{new Date().getFullYear()}} LaoEpic. All rights reserved.</p> -->
+            <p><a href="https://laoepic.com">Visit our website</a></p>
+        </div>
+    </div>
+</body>
+
+</html>
