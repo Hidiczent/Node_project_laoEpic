@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Order from "../interface/orderModel";
+import { QueryTypes } from "sequelize";
 
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
@@ -112,6 +113,33 @@ export const updateOrder = async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({
       error: "Error updating order",
+      details: error.message,
+    });
+  }
+};
+
+// Get all orders for current logged-in user
+
+export const getOrdersByUser = async (req: Request, res: Response) => {
+  const userId = (req as any).user?.user_id;
+
+  try {
+    const orders = await Order.sequelize?.query(
+      `SELECT o.*, r.first_name, r.package_id
+       FROM orders o
+       JOIN register_form_to_book r ON o.ID_Reformbook = r.ID_Reformbook
+       WHERE r.ID_User = ?
+       ORDER BY o.order_date DESC`,
+      {
+        replacements: [userId],
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    res.status(200).json(orders);
+  } catch (error: any) {
+    res.status(500).json({
+      error: "Error fetching user's orders",
       details: error.message,
     });
   }
