@@ -19,7 +19,7 @@ export const createPackageImages = async (req: Request, res: Response) => {
       message: "Package images created successfully",
       images: createdImages,
     });
-    console.log("PackageImages ", req.body, image_url);
+    // console.log("PackageImages ", req.body, image_url);
   } catch (error: any) {
     console.error("Error creating package images:", error);
     res.status(500).json({
@@ -32,7 +32,7 @@ export const createPackageImages = async (req: Request, res: Response) => {
 export const getPackageImages = async (req: Request, res: Response) => {
   const { package_id } = req.params;
 
-  console.log("Received package_id:", package_id); // ตรวจสอบค่า package_id
+  // console.log("Received package_id:", package_id); // ตรวจสอบค่า package_id
 
   if (!package_id) {
     return res.status(400).json({ error: "package_id is required" });
@@ -44,7 +44,7 @@ export const getPackageImages = async (req: Request, res: Response) => {
       order: [["image_id", "ASC"]],
     });
 
-    console.log("Fetched images:", images); // ตรวจสอบข้อมูลที่ได้จากฐานข้อมูล
+    // console.log("Fetched images:", images); // ตรวจสอบข้อมูลที่ได้จากฐานข้อมูล
 
     res.status(200).json(images);
   } catch (error) {
@@ -71,8 +71,8 @@ export const updatePackageImage = async (req: Request, res: Response) => {
 
 export const deletePackageImage = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const imageToDelete = await PackageImage.findByPk(id);
+    const { image_id } = req.params;
+    const imageToDelete = await PackageImage.findByPk(image_id);
     if (!imageToDelete)
       return res.status(404).json({ message: "Image not found" });
 

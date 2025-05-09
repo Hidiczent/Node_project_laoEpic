@@ -34,7 +34,7 @@ router.put("/update/:id", updateUser);
 router.put("/profile", authenticateToken, updateProfile);
 
 // Delete a user by ID
-router.delete("/delete/admin-only/:id", authenticateToken, isAdmin, deleteUser);
+router.delete("/delete/:id", deleteUser);
 // User login
 router.post("/login", loginUser);
 // Create a new user

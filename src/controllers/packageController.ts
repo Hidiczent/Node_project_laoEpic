@@ -84,12 +84,30 @@ export const getPackageById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Package not found" });
     }
 
-    res.status(200).json(packageData);
+    const result = packageData.toJSON();
+
+    // แปลง JSON string ให้เป็น array ถ้าเป็น string
+    const parseArray = (value: any) => {
+      try {
+        if (typeof value === "string") {
+          return JSON.parse(value);
+        }
+        return value;
+      } catch (e) {
+        return []; // fallback เป็น array ว่าง
+      }
+    };
+
+    result.tour_info = parseArray(result.tour_info);
+    result.bring = parseArray(result.bring);
+
+    res.status(200).json(result);
   } catch (error) {
     console.error("Error fetching package by ID:", error);
     res.status(500).json({ error: "Error fetching package data" });
   }
 };
+
 
 // Update a package by package_id
 export const updatePackage = async (req: Request, res: Response) => {

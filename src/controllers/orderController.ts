@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Order from "../interface/orderModel";
 import { QueryTypes } from "sequelize";
+import Notification from "../interface/notificationModel";
 
 // Create a new order
 export const createOrder = async (req: Request, res: Response) => {
@@ -51,15 +52,31 @@ export const getOrders = async (req: Request, res: Response) => {
 };
 
 // Get order by ID
+
 export const getOrderById = async (req: Request, res: Response) => {
   const { order_id } = req.params;
 
   try {
-    const order = await Order.findByPk(order_id);
-    if (!order) {
+    const order = await Order.sequelize?.query(
+      `SELECT 
+         o.order_id, o.order_status, o.order_date,
+         p.title AS package_title,
+         r.first_name, r.last_name, r.email, r.Birth, r.Note, r.Number_of_participants,
+         r.Number_of_pass_port, r.Date_for_book
+       FROM orders o
+       JOIN register_form_to_book r ON o.ID_Reformbook = r.ID_Reformbook
+       LEFT JOIN packages p ON o.package_id = p.package_id
+       WHERE o.order_id = :order_id`,
+      {
+        replacements: { order_id },
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    if (!order || order.length === 0) {
       return res.status(404).json({ message: "Order not found" });
     }
-    res.status(200).json(order);
+    res.status(200).json(order[0]);  // Send back the first result if found
   } catch (error: any) {
     res.status(500).json({
       error: "Error fetching order",
@@ -125,9 +142,17 @@ export const getOrdersByUser = async (req: Request, res: Response) => {
 
   try {
     const orders = await Order.sequelize?.query(
-      `SELECT o.*, r.first_name, r.package_id
+      `SELECT 
+          o.*, 
+          r.first_name, 
+          r.package_id,
+          p.title AS package_title,
+          p.main_image_url,
+          p.price_in_usd,
+          p.available_date AS location
        FROM orders o
        JOIN register_form_to_book r ON o.ID_Reformbook = r.ID_Reformbook
+       JOIN packages p ON r.package_id = p.package_id
        WHERE r.ID_User = ?
        ORDER BY o.order_date DESC`,
       {
@@ -135,12 +160,99 @@ export const getOrdersByUser = async (req: Request, res: Response) => {
         type: QueryTypes.SELECT,
       }
     );
-
+        
     res.status(200).json(orders);
   } catch (error: any) {
     res.status(500).json({
       error: "Error fetching user's orders",
       details: error.message,
+    });
+  }
+};
+
+export const cancelOrderByUser = async (req: Request, res: Response) => {
+  const { order_id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const order = await Order.findByPk(order_id);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    await order.update({
+      order_status: "Cancelled",
+      cancellation_reason: reason || "Cancelled by user",
+      cancellation_date: new Date(),
+    });
+
+    res.status(200).json({ message: "Order cancelled successfully" });
+  } catch (error: any) {
+    res.status(500).json({
+      error: "Failed to cancel order",
+      details: error.message,
+    });
+  }
+};
+
+// Cancel order by admin  
+
+export const cancelOrderByAdmin = async (req: Request, res: Response) => {
+  const { order_id } = req.params;
+
+  try {
+    const order = await Order.findByPk(order_id);
+
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    if (order.order_status?.toLowerCase() === 'cancelled') {
+      return res.status(400).json({ error: "Order is already cancelled" });
+    }
+
+    // ✅ ยกเลิกคำสั่งซื้อ
+    order.order_status = 'cancelled';
+    await order.save();
+
+    // ✅ สร้าง Notification หลังยกเลิก
+    await Notification.create({
+      order_id: order_id,
+      status_notification: 'new', // 'new' สำหรับ unread
+    });
+
+    res.status(200).json({ message: "Order has been cancelled successfully" });
+  } catch (err: any) {
+    console.error("❌ Error cancelling order:", err);
+    res.status(500).json({ error: "Failed to cancel order", details: err.message });
+  }
+};
+
+
+
+// Cancleorder
+export const cancelOrder = async (req: Request, res: Response) => {
+  const { order_id } = req.params;
+  const { reason } = req.body;
+
+  try {
+    const order = await Order.findByPk(order_id);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    await order.update({
+      order_status: "Cancelled",
+      cancellation_reason: reason || "Cancelled by user",
+      cancellation_date: new Date(),
+    });
+
+    res.status(200).json({ message: "Order cancelled successfully" });
+  } catch (err: any) {
+    res.status(500).json({
+      error: "Failed to cancel order",
+      details: err.message,
     });
   }
 };
@@ -160,6 +272,81 @@ export const deleteOrder = async (req: Request, res: Response) => {
   } catch (error: any) {
     res.status(500).json({
       error: "Error deleting order",
+      details: error.message,
+    });
+  }
+};
+
+
+export const confirmOrder = async (req: Request, res: Response) => {
+  const { order_id } = req.params;
+
+  try {
+    const order = await Order.findByPk(order_id);
+    if (!order || order.order_status.toLowerCase() !== 'pending') {
+      return res.status(400).json({ error: 'Invalid or already confirmed order' });
+    }
+
+    await order.update({ order_status: 'confirmed' });
+
+    await Notification.create({
+      order_id: order_id,
+      status_notification: 'new', // หรือ 'confirmed' ตามที่ Flutter รองรับ
+    });
+
+    res.status(200).json({ message: 'Order confirmed and notification sent' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to confirm order' });
+  }
+};
+
+
+export const getAdminOrdersWithDetails = async (req: Request, res: Response) => {
+  try {
+    const orders = await Order.sequelize?.query(
+      `SELECT 
+         o.order_id, o.order_status, o.order_date,
+
+         p.title AS package_title,
+         r.first_name, r.last_name, r.email, r.Birth, r.Note, r.Number_of_participants,
+         r.Number_of_pass_port, r.Date_for_book
+       FROM orders o
+       JOIN register_form_to_book r ON o.ID_Reformbook = r.ID_Reformbook
+       JOIN packages p ON o.package_id = p.package_id
+       ORDER BY o.order_date DESC`,
+      { type: QueryTypes.SELECT }
+    );
+
+    res.status(200).json(orders);
+  } catch (error: any) {
+    res.status(500).json({
+      error: "Failed to fetch admin order details",
+      details: error.message,
+    });
+  }
+};
+export const getConfirmedOrdersWithDetails = async (req: Request, res: Response) => {
+  try {
+    const orders = await Order.sequelize?.query(
+      `SELECT 
+         o.order_id, o.order_status, o.order_date,
+         p.title AS package_title,
+         r.first_name, r.last_name, r.email, r.Birth, r.Note, r.Number_of_participants,
+         r.Number_of_pass_port, r.Date_for_book
+       FROM orders o
+       JOIN register_form_to_book r ON o.ID_Reformbook = r.ID_Reformbook
+       JOIN packages p ON o.package_id = p.package_id
+       WHERE o.order_status = 'confirmed'  -- กรองเฉพาะคำสั่งซื้อที่มีสถานะ confirmed
+       ORDER BY o.order_date DESC`,
+      { type: QueryTypes.SELECT }
+    );
+   console.log("➡️ Creating order with package_id:", req.body.package_id);
+
+    res.status(200).json(orders);
+  } catch (error: any) {
+    res.status(500).json({
+      error: "Failed to fetch confirmed orders",
       details: error.message,
     });
   }

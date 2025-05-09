@@ -9,7 +9,7 @@ import {
 const router = Router();
 
 router.post("/create", createTransportation);
-router.get("/", getAllTransportations);
+router.get("/gets", getAllTransportations);
 router.put("/update/:id", updateTransportation);
 router.delete("/delete/:id", deleteTransportation);
 

@@ -24,6 +24,7 @@ import paymentRoutes from "./routes/paymentRoutes";
 import oderRoutes from "./routes/orderRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import viewerRatingRoutes from "./routes/viewerRatingRoutes";
+import authRoutes from "./routes/authRoutes"; // นำเข้าจาก authRoutes.ts
 import config from "./config/ormconfig"; // นำเข้าจาก ormconfig.ts
 import dotenv from "dotenv";
 import cors = require("cors");
@@ -53,12 +54,13 @@ app.use("/nationality", nationalitiesRoutes);
 app.use("/registerform", registerFormEmailRoutes);
 app.use("/transportation", transportationRoutes);
 app.use("/type_transportation", typetransportationRoutes);
-app.use("/package", packageRoutes);
+app.use("/packages", packageRoutes);
 app.use("/packageImage", packageImageRoutes);
 app.use("/notification", notificationRoutes);
 app.use("/viewer", viewerRatingRoutes);
 app.use("/payment", paymentRoutes);
-app.use("/order", oderRoutes);
+app.use("/orders", oderRoutes);
+app.use('/auth', authRoutes);  // เชื่อมต่อเส้นทางการตรวจสอบ token
 
 // เชื่อมต่อกับฐานข้อมูล
 createConnection(config)

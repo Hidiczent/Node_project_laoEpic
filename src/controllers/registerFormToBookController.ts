@@ -20,10 +20,23 @@ export const sendRegisterFormEmail = async (req: Request, res: Response) => {
     package_id,
   } = req.body;
 
-  // console.log("Received data:", req.body);
+  const id_user = (req as any).user?.user_id;
 
-  const id_user = (req as any).user ? (req as any).user.ID_User : null;
+  console.log("📥 Received booking data:", {
+    first_name,
+    last_name,
+    email,
+    birth,
+    nationality_id,
+    date_for_booking,
+    number_of_participants,
+    passport_number,
+    note,
+    package_id,
+    id_user,
+  });
 
+  // ตรวจสอบ field ที่จำเป็น
   if (
     !first_name ||
     !last_name ||
@@ -37,19 +50,19 @@ export const sendRegisterFormEmail = async (req: Request, res: Response) => {
   }
 
   try {
-    // ดึงข้อมูลแพ็กเกจ
+    // 🔎 ดึงข้อมูลแพ็คเกจ
     const packageData = await Package.findByPk(package_id);
     if (!packageData) {
       return res.status(404).json({ error: "Package not found" });
     }
     const title = packageData.getDataValue("title");
 
-    // ดึงข้อมูลสัญชาติ
+    // 🔎 ดึงข้อมูลสัญชาติ
     const nationality = await Nationality.findByPk(nationality_id);
     const nationalityName = nationality ? nationality.name : "Unknown";
 
-    // บันทึกข้อมูลการจอง
-    const newBooking = await RegisterFormBook.create({
+    // 🧪 Log ค่าที่จะ insert
+    const bookingPayload = {
       first_name,
       last_name,
       Email: email,
@@ -61,33 +74,42 @@ export const sendRegisterFormEmail = async (req: Request, res: Response) => {
       Note: note,
       ID_User: id_user,
       package_id,
-    });
+    };
+    console.log("📤 Payload for RegisterFormBook.create():", bookingPayload);
 
-    // เตรียมอีเมลสำหรับแอดมิน
-    const adminTemplatePath = path.join(
-      __dirname,
-      "../views/adminEmailTemplate.html"
-    );
+    // ✅ STEP 1: บันทึกข้อมูล
+    let newBooking;
+    try {
+      newBooking = await RegisterFormBook.create(bookingPayload);
+      // const newBooking = await RegisterFormBook.create({...});
+console.log("✅ New booking ID:", newBooking?.getDataValue('ID_Reformbook'));
+
+    } catch (insertError: any) {
+      console.error("❌ Insert failed:", insertError.message);
+      return res.status(500).json({
+        error: "Insert into register_form_to_book failed",
+        details: insertError.message,
+      });
+    }
+
+    // ✅ STEP 2: เตรียมอีเมล
+    const adminTemplatePath = path.join(__dirname, "../views/adminEmailTemplate.html");
+    const userTemplatePath = path.join(__dirname, "../views/userEmailTemplate.html");
+
     let adminEmailTemplate = fs.readFileSync(adminTemplatePath, "utf-8");
+    let userEmailTemplate = fs.readFileSync(userTemplatePath, "utf-8");
 
     adminEmailTemplate = adminEmailTemplate
       .replace("{{package_name}}", title)
       .replace("{{first_name}}", first_name)
       .replace("{{last_name}}", last_name)
       .replace("{{email}}", email)
-      .replace("{{birth}}", birth || "")
+      .replace("{{birth}}", birth)
       .replace("{{nationality}}", nationalityName)
       .replace("{{date_for_booking}}", date_for_booking.toString())
       .replace("{{number_of_participants}}", number_of_participants.toString())
-      .replace("{{passport_number}}", passport_number || "")
+      .replace("{{passport_number}}", passport_number)
       .replace("{{note}}", note);
-
-    // เตรียมอีเมลสำหรับผู้จอง
-    const userTemplatePath = path.join(
-      __dirname,
-      "../views/userEmailTemplate.html"
-    );
-    let userEmailTemplate = fs.readFileSync(userTemplatePath, "utf-8");
 
     userEmailTemplate = userEmailTemplate
       .replace("{{package_name}}", title)
@@ -96,6 +118,7 @@ export const sendRegisterFormEmail = async (req: Request, res: Response) => {
       .replace("{{date_for_booking}}", date_for_booking.toString())
       .replace("{{number_of_participants}}", number_of_participants.toString())
       .replace("{{note}}", note);
+
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -104,35 +127,29 @@ export const sendRegisterFormEmail = async (req: Request, res: Response) => {
       },
     });
 
-    // ส่งอีเมลถึงแอดมิน
-    const adminMailOptions = {
+    await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: process.env.RECEIVER_EMAIL,
       subject: "New booking form submission",
       html: adminEmailTemplate,
-    };
+    });
 
-    await transporter.sendMail(adminMailOptions);
-
-    // ส่งอีเมลถึงผู้จอง
-    const userMailOptions = {
+    await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to: email, // อีเมลของผู้จอง
+      to: email,
       subject: "Booking Confirmation - LaoEpic",
       html: userEmailTemplate,
-    };
+    });
 
-    await transporter.sendMail(userMailOptions);
-
-    res.status(200).json({
+    return res.status(200).json({
       message: "Booking saved and emails sent successfully",
-      booking: newBooking,
+      form: newBooking,
     });
   } catch (error: any) {
-    console.error("Error:", error);
-    res.status(500).json({
-      error: "Error saving booking or sending emails",
-      details: error.message || "Unknown error",
+    console.error("🔥 Unexpected error:", error.message);
+    return res.status(500).json({
+      error: "Unexpected error occurred",
+      details: error.message,
     });
   }
 };

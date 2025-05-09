@@ -8,7 +8,7 @@ const Notification = sequelize.define("Notification", {
     autoIncrement: true,
   },
   status_notification: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('new', 'read', 'seen'), // ใช้ ENUM สำหรับสถานะที่กำหนด
     allowNull: false,
   },
   order_id: {

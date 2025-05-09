@@ -5,10 +5,11 @@ import {
   updateBooking,
   deleteBooking,
 } from "../controllers/registerFormToBookController";
+import { authenticateToken } from "../middlewares/authMiddleware";
 
 const router = Router();
 
-router.post("/send-form-email", sendRegisterFormEmail); // สำหรับการจองใหม่
+router.post("/send-form-email", authenticateToken,sendRegisterFormEmail); // สำหรับการจองใหม่
 router.get("/bookings", getAllBookings); // สำหรับดึงข้อมูลการจองทั้งหมด
 router.put("/bookings/:id", updateBooking); // สำหรับอัปเดตการจอง
 router.delete("/bookings/:id", deleteBooking); // สำหรับลบการจอง

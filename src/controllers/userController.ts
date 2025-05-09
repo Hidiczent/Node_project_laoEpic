@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
 import { OTPService } from "../services/otp.service";
 import OTPMetadata from "../interface/otpMetadata.model";
+import { log } from "console";
 
 const SECRET_KEY = process.env.JWT_SECRET_KEY || "your_jwt_secret_key";
 
@@ -33,7 +34,7 @@ export const registerWithOtp = async (req: Request, res: Response) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 นาที
-
+    // log (res)
     await OTP.destroy({ where: { email, action } });
     await OTP.create({ email, code: otp, action, expires_at: expiresAt });
 
